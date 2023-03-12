@@ -1,14 +1,14 @@
 {
-  "name": "mmm-porcupine",
+  "name": "mmm-hotword2",
   "version": "1.0.0",
   "description": "MagicMirror module with Picovoice's Porcupine for Hotword detector",
-  "main": "MMM-Porcupine.js",
+  "main": "MMM-Hotword2.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/MMRIZE/MMM-Porcupine.git"
+    "url": "git+https://github.com/MMRIZE/MMM-Hotword2.git"
   },
   "keywords": [
     "magicmirror",
@@ -16,12 +16,12 @@
     "hotword",
     "detector"
   ],
-  "author": "eouia0819",
+  "author": "eouia0819@gmail.com",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/MMRIZE/MMM-Porcupine/issues"
+    "url": "https://github.com/MMRIZE/MMM-Hotword2/issues"
   },
-  "homepage": "https://github.com/MMRIZE/MMM-Porcupine#readme",
+  "homepage": "https://github.com/MMRIZE/MMM-Hotword2#readme",
   "dependencies": {
     "@picovoice/porcupine-node": "^2.1.7",
     "@picovoice/pvrecorder-node": "^1.1.2",
