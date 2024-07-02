@@ -1,0 +1,1 @@
+Store your custom hotword model(*.ppn) in this directory.

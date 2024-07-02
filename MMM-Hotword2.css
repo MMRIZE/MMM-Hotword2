@@ -1,0 +1,41 @@
+/* stylelint-disable selector-class-pattern */
+.HOT2 {
+  content: "";
+  display: flex;
+  align-items: center;
+  justify-content: left;
+  height: 48px;
+  gap: 10px;
+}
+
+.HOT2[data-status=""]::before {
+  content: "";
+}
+
+.HOT2[data-status="error"]::before {
+  content: url("https://api.iconify.design/line-md/alert-circle-loop.svg?color=crimson&width=48");
+}
+
+.HOT2[data-status="error"] {
+  color: crimson;
+}
+
+.HOT2[data-status="detecting"]::before {
+  content: url("https://api.iconify.design/line-md/coffee-twotone-loop.svg?color=white&width=48");
+}
+
+.HOT2[data-status="detected"]::before {
+  content: url("https://api.iconify.design/line-md/bell-twotone-alert-loop.svg?color=lightgreen&width=48");
+}
+
+.HOT2[data-status="detected"] {
+  color: lightgreen;
+}
+
+.HOT2[data-status="recording"]::before {
+  content: url("https://api.iconify.design/line-md/loading-twotone-loop.svg?color=dodgerblue&width=48");
+}
+
+.HOT2[data-status="recording"] {
+  color: dodgerblue;
+}
