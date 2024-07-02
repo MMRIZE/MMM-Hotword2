@@ -103,5 +103,7 @@ dist
 # TernJS port file
 .tern-port
 
-.ppn
-.pv
+*.ppn
+*.pv
+
+resources/*.ppn
