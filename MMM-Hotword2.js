@@ -20,14 +20,6 @@ class HotwordHelper {
     const modules = this.getModules()
     return modules.find(m => m.name === name)
   }
-
-  stopDetector() {
-    return this.#_callbacks.stopDetector()
-  }
-
-  resumeDetector() {
-    return this.#_callbacks.resumeDetector()
-  }
 }
 
 
@@ -40,9 +32,12 @@ Module.register("MMM-Hotword2", {
 
     sensitivity: 0.5,
     continuousRecording: false,
+    restart: false,
+    restartDelay: 1000,
     onDetect: async ({ helper, result, error, payload }) => { // helper, result, error, payload
+      if (error) return
       console.log('[HOT2] Detected:', result)
-      helper.sendMessage('SHOW_ALERT', { title: 'Hotword Detected', message: `Hotword: ${result.hotword}` })
+      helper.sendNotification('SHOW_ALERT', { title: 'Hotword Detected', message: `Hotword: ${result?.hotword}` })
     },
 
     languageModel: null, // For english, just leave as null, or 'porcupine_params_ko.pv' for Korean.
@@ -67,9 +62,25 @@ Module.register("MMM-Hotword2", {
     return ['MMM-Hotword2.css']
   },
 
+  regularizeHotwords: function (hotwords) {
+    return hotwords.map(h => {
+      return {
+        ...h,
+        onDetect: (typeof h.onDetect === 'function') ? h.onDetect : this.config.onDetect,
+        restart: h.restart ?? this.config.restart,
+        restartDelay: h.restartDelay ?? this.config.restartDelay,
+        continuousRecording: h.continuousRecording ?? this.config.continuousRecording,
+        sensitivity: h.sensitivity ?? this.config.sensitivity,
+      }
+    })
+  },
+
   start: function () {
     this.requested = new Map()
     this.shellJobs = new Map()
+
+    this.config.hotwords = this.regularizeHotwords(this.config.hotwords)
+
     this.sendSocketNotification('INIT', this.config)
     this.helper = new HotwordHelper({
       sendNotification: (noti, payload) => {
@@ -89,26 +100,15 @@ Module.register("MMM-Hotword2", {
       getModules: () => {
         return MM.getModules()
       },
-      resumeDetector: (delay = 0) => {
-        const asleep = (ms) => {
-          return new Promise(resolve => setTimeout(resolve, ms))
-        }
-        const job = async () => {
-          await asleep(delay)
-          return this.resumeDetector()
-        }
-        job()
-      },
-      stopDetector: () => {
-        return this.stopDetector()
-      }
     })
   },
 
   onDeactivated: async function (payload) {
-    setTimeout(async () => {
-      await this.flushRequestedMap()
-    }, 1000)
+    this.onStatus({ status: '' })
+    //setTimeout(async () => {
+    await this.flushRequestedMap()
+    this.sendNotification('HOTWORD_DEACTIVATED')
+    //}, 1000)
   },
 
   onResult: async function ({ notificationId, result, error, payload }) {
@@ -121,7 +121,7 @@ Module.register("MMM-Hotword2", {
     await callback({ error, result, payload: rest })
     const { hotwords = [] } = original?.config ?? this.config
     if (Array.isArray(hotwords) && hotwords.length > 0) {
-      let found = hotwords.find(h => h.hotword === result.hotword)
+      let found = hotwords.find(h => h.hotword === result?.hotword)
       let onDetect = (typeof found?.onDetect === 'function') ? found.onDetect : this.config.onDetect
       const ret = await onDetect({
         helper: this.helper,
@@ -129,12 +129,19 @@ Module.register("MMM-Hotword2", {
         error,
         payload: rest
       })
-      if (found?.autoRestart) {
-        if (verbose) Log.log('[HOT2] Restarting detector...')
-        this.notificationReceived('HOTWORD_ACTIVATE', original, sender)
+      if (found?.restart) {
+        setTimeout(() => {
+          console.log('[HOT2] Restarting detector...')
+          this.notificationReceived('HOTWORD_ACTIVATE', original, sender)
+        }, found?.restartDelay ?? 1000)
       } else {
         setTimeout(() => {
-          this.onStatus({ status: '' })
+          const status = document.getElementById('HOT2_' + this.identifier)
+          if (status.dataset.status === 'detected') {
+            console.log('[HOT2] Finished...')
+            status.dataset.status = ''
+            status.innerHTML = ''
+          }
         }, 3000)
       }
     }
@@ -144,7 +151,7 @@ Module.register("MMM-Hotword2", {
     this.sendNotification('HOTWORD_READY')
     if (this.config.startOnBoot) {
       Log.log('[HOT2] Starting on Boot...')
-      this.notificationReceived('HOTWORD_ACTIVATE', this.config)
+      this.notificationReceived('HOTWORD_ACTIVATE', this.config, { name: 'MMM-Hotword2' })
     }
   },
 
@@ -172,7 +179,6 @@ Module.register("MMM-Hotword2", {
     }
 
     if (job[ notification ] && typeof this[ job[ notification ] ] === 'function') {
-      console.log("#", notification, payload)
       this[ job[ notification ] ](payload)
       return
     }
@@ -186,7 +192,6 @@ Module.register("MMM-Hotword2", {
     }
 
     if (job[ notification ] && typeof this[ job[ notification ] ] === 'function') {
-      console.log("@", notification)
       this[ job[ notification ] ](payload, sender)
       return
     }
@@ -210,17 +215,14 @@ Module.register("MMM-Hotword2", {
 
   consumeRequestedMap: function (notificationId) {
     if (!this.requested.has(notificationId)) return null
-    console.log("!!requested", this.requested)
     const payload = this.requested.get(notificationId)
-    console.log("!!fetch", payload)
     //this.requested.delete(notificationId)
     return payload
   },
 
-  activate: function (payload, sender) {
+  activate: function (delivered = {}, sender = { name: 'unknown' }) {
+    const payload = { ...this.config, ...delivered }
     const notificationId = this.setRequestedMap(payload, sender)
-    console.log("activate", { notificationId, payload })
-    console.log("consumeMap", this.requested)
     this.sendSocketNotification('ACTIVATE', { notificationId, ...payload })
   },
 

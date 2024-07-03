@@ -21,7 +21,7 @@
 }
 
 .HOT2[data-status="detecting"]::before {
-  content: url("https://api.iconify.design/line-md/coffee-twotone-loop.svg?color=white&width=48");
+  content: url("https://api.iconify.design/svg-spinners/bars-scale-fade.svg?color=white&width=48");
 }
 
 .HOT2[data-status="detected"]::before {

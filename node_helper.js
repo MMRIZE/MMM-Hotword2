@@ -57,16 +57,16 @@ module.exports = NodeHelper.create({
 
     for (const { hotword, sensitivity = this.config.sensitivity, file = '_', continuousRecording = this.config.continuousRecording } of hotwords) {
       if (!hotword) {
-        log('[HOT2] No hotword to detect.')
+        log('No hotword to detect.')
         continue
       }
       let fp = path.resolve(__dirname, CUSTOM_HOTWORDS_PATH, file)
       const value = (fs.existsSync(fp)) ? fp : (BUILTIN_KEYWORDS.includes(hotword) ? BuiltinKeyword[ hotword ] : null)
       if (value) {
         ret.push({ hotword, sensitivity, file: value, continuousRecording })
-        log('[HOT2] Hotword added:', hotword, file)
+        log('Hotword added:', hotword, file)
       } else {
-        log('[HOT2] Hotword file not found:', hotword, file)
+        log('Hotword file not found:', hotword, file)
       }
     }
     return ret
@@ -74,7 +74,7 @@ module.exports = NodeHelper.create({
 
   replyNotificationReceived: function (payload = null) {
     if (!payload?.notificationId) {
-      log('[HOT2] No notification ID to reply.', payload)
+      log('No notification ID to reply.', payload)
       return
     }
     this.sendSocketNotification('RESULT', payload)
@@ -103,6 +103,7 @@ module.exports = NodeHelper.create({
   },
 
   deactivate: function (payload) {
+    console.log('Deactivating...')
     this.live = false
     this.sendSocketNotification('DEACTIVATED', payload)
     this.status({ status: '' })
@@ -122,7 +123,7 @@ module.exports = NodeHelper.create({
 
   initializePorcupine: function (config, hotwordIndex) {
     if (!this.live) {
-      log('[HOT2] Detector is not live')
+      log('Detector is not live')
       throw new Error('Detector is not live')
     }
     let porcupine = null
@@ -135,8 +136,8 @@ module.exports = NodeHelper.create({
         modelPath,
       ]).filter(r => r))
     } catch (e) {
-      log('[HOT2] Cannot create detector.')
-      log('[HOT2] Error:', e)
+      log('Cannot create detector.')
+      log('Error:', e.toString())
       throw e
     }
     return porcupine
@@ -144,15 +145,15 @@ module.exports = NodeHelper.create({
 
   initializeVAD: function (config) {
     if (!this.live) {
-      log('[HOT2] Detector is not live')
+      log('Detector is not live')
       throw new Error('Detector is not live')
     }
     let cobra = null
     try {
       cobra = new Cobra(ACCESS_KEY)
     } catch (e) {
-      log('[HOT2] Cannot create VAD.')
-      log('[HOT2] Error:', e)
+      log('Cannot create VAD.')
+      log('Error:', e)
       throw e
     }
     return cobra
@@ -160,7 +161,7 @@ module.exports = NodeHelper.create({
 
   initializeRecorder: function (config) {
     if (!this.live) {
-      log('[HOT2] Detector is not live')
+      log('Detector is not live')
       throw new Error('Detector is not live')
     }
     let recorder = null
@@ -177,10 +178,10 @@ module.exports = NodeHelper.create({
         recorderBufferedFramesCount,
       )
       const using = recorder.getSelectedDevice()
-      log('[HOT2] MIC device:', using)
+      log('MIC device:', using)
     } catch (e) {
-      log('[HOT2] Cannot create recorder.')
-      log('[HOT2] Error:', e)
+      log('Cannot create recorder.')
+      log('Error:', e)
       throw e
     }
     return recorder
@@ -189,28 +190,17 @@ module.exports = NodeHelper.create({
   deleteAllFiles: function () {
     const dir = path.resolve(__dirname, 'storage')
     fs.readdirSync(dir).forEach(file => {
-      fs.unlinkSync(path.join(dir, file))
+      //if filename is not `placeholder.txt', delete it.
+      if (file !== 'placeholder.txt') fs.unlinkSync(path.join(dir, file))
     })
-    log('[HOT2] All previously recorded files are deleted.')
+    log('All previously recorded files are deleted.')
   },
 
   process: async function (payload) {
     let porcupine, cobra, recorder
-    // This could make SIGTRAP Interruption. So, I will not use this function.
-    /*
-    const releaseAll = (porcupine, cobra, recorder) => {
-      this.live = false
-      if (typeof porcupine?.release === 'function') porcupine.release()
-      porcupine = null
-      if (typeof cobra?.release === 'function') cobra.release()
-      cobra = null
-      if (typeof recorder?.release === 'function') recorder.release()
-      recorder = null
-    }
-    */
 
     if (this.live) {
-      log('[HOT2] Detector already running')
+      log('Detector already running')
       return { error: 'Detector already running' }
     }
     this.live = true
@@ -219,7 +209,7 @@ module.exports = NodeHelper.create({
 
     const hotwordIndex = this.buildHotwords(config.hotwords)
     if (hotwordIndex.length < 1) {
-      log('[HOT2] No hotword to detect.')
+      log('No hotword to detect.')
       this.live = false
       this.status({ status: 'error', content: 'No hotword to detect'})
       return { error: 'No hotword to detect' }
@@ -235,7 +225,7 @@ module.exports = NodeHelper.create({
       recorder = this.initializeRecorder(config)
 
     } catch (e) {
-      log('[HOT2] Detector initialization failed.')
+      log('Detector initialization failed.')
       this.status({ status: 'error', content: e.toString() })
       this.live = false
       if (typeof porcupine?.release === 'function') porcupine.release()
@@ -250,11 +240,11 @@ module.exports = NodeHelper.create({
     let detected = {}
     try {
       if (!this.live) {
-        log('[HOT2] Detector is not live')
+        log('Detector is not live')
         throw new Error('Detector is not live')
       }
       this.status({ status: 'detecting', content: 'listening...' })
-      log('[HOT2] Detector started')
+      log('Detector started')
       recorder.start()
       const { recordOnly = null } = payload
       // hotword detection
@@ -266,7 +256,7 @@ module.exports = NodeHelper.create({
           const index = porcupine.process(frames)
           if (index !== -1) {
             detected = hotwordIndex[ index ]
-            log('[HOT2] Detected:', detected.hotword)
+            log('Detected:', detected.hotword)
             this.status({ status: 'detected', content: detected.hotword })
             porcupine.release()
             porcupine = null
@@ -275,7 +265,7 @@ module.exports = NodeHelper.create({
         }
       }
       if (!detected.hotword) {
-        log('[HOT2] Detector stopped, but nothing detected.')
+        log('Detector stopped, but nothing detected.')
         throw new Error('Nothing detected')
       }
 
@@ -283,7 +273,7 @@ module.exports = NodeHelper.create({
       if (detected.continuousRecording) {
         const { recorderFrameLength, tooShortRecording, tooLongRecording, soundThreshold, silentFrames } = config
         if (!this.live) {
-          log('[HOT2] Detector is not live')
+          log('Detector is not live')
           throw new Error('Detector is not live')
         }
         this.status({ status: 'recording', content: detected.hotword })
@@ -296,7 +286,7 @@ module.exports = NodeHelper.create({
         while (sf < silentFrames && this.live) {
           endTime = Date.now() - startTime
           if (endTime > tooLongRecording) {
-            log('[HOT2] Recording too long.')
+            log('Recording too long.')
             endTime = null
             break
           }
@@ -323,9 +313,9 @@ module.exports = NodeHelper.create({
           detected.filePath = filePath
           detected.fileUrl = path.join('modules', 'MMM-Hotword2', 'storage', filename)
         } else {
-          log('[HOT2] Recording too short. It will be ignored.')
+          log('Recording too short. It will be ignored.')
         }
-        log('[HOT2] Recorder stopped')
+        log('Recorder stopped')
         //continuous recording ends.
       }
       this.live = false
@@ -335,7 +325,7 @@ module.exports = NodeHelper.create({
       cobra = null
       if (typeof recorder?.release === 'function') recorder.release()
       recorder = null
-      log('[HOT2] Detector process finished.')
+      log('Detector process finished.')
 
       return {
         result: {
@@ -346,7 +336,7 @@ module.exports = NodeHelper.create({
       }
     } catch (e) {
       this.status({ status: 'error', content: e.toString() })
-      log('[HOT2] Detector process failed.')
+      log('Detector process failed.')
       log(e)
       this.live = false
       if (typeof porcupine?.release === 'function') porcupine.release()
