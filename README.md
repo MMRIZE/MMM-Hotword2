@@ -22,5 +22,6 @@ You can discuss Usage/Tips in the [Discussions](https://github.com/MMRIZE/MMM-Ho
 You can report a bug or issue in the [Issues](https://github.com/MMRIZE/MMM-Hotword2/issues)
 
 ## Author
-eouia0819@gmail.com
+Seongnoh Yi (eouia0819@gmail.com)
+
 [☕Buy a coffee.](https://ko-fi.com/eouia)
