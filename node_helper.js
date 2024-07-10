@@ -55,7 +55,7 @@ module.exports = NodeHelper.create({
     const ret = []
     if (!hotwords) return ret
 
-    for (const { hotword, sensitivity = this.config.sensitivity, file = '_', continuousRecording = this.config.continuousRecording } of hotwords) {
+    for (const { hotword, sensitivity = this.config.sensitivity, file = 'PRE_DEFINED', continuousRecording = this.config.continuousRecording } of hotwords) {
       if (!hotword) {
         log('No hotword to detect.')
         continue

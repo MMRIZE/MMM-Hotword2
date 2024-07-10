@@ -1,40 +1,24 @@
 # MMM-Hotword2
-MagicMirror module with Picovoice's Porcupine for Hotword detector. My previous `MMM-Hotword` module is deprecated due to `snowboy` hot-word detecting engine closing its service. Fortunately, PICOVOICE's Porcupine and its siblings are good enough and cheap. So I rebuilt the hot-word detector again.
+MagicMirror module with Picovoice's Porcupine for Hotword detector. My previous `MMM-Hotword` module is deprecated due to `snowboy` hot-word detecting engine closing its service. Fortunately, PICOVOICE's Porcupine and its siblings would be good enough alternative. So I rebuilt the hot-word detector again.
+
+![Screenshot](./screenshot.png)
+
+## Features
+
+- Multi Hotwords/ Custom Hotwords supported
+- Individual Hotword setting
+- On detection, various works possible;
+  - Control other modules with custom notification
+  - Execute Shell command or scripts and get the result.
+- Not only hotword, but also continuous utterance could be acauired.(as recorded wav file)
+  - The recorded file could be consumed on other STT / voice handling modules
+- No need to rebuild for electron
 
 
-
-
-## Install
-
-
-### 1. Install `SOX` for the backbone audio framework.
-You need to install `sox` at the beginning.
-#### For MacOS
-```sh
-brew install sox
-```
-
-#### For most linux distro's (including Raspbian)
-```sh
-sudo apt-get install sox libsox-fmt-all
-```
-
-#### For Windows
-**TODO** (Help needed.)
-
-### 2. Install `MMM-Hotword2`
-```sh
-cd <MagicMirror Directory>/modules
-git clone https://github.com/MMRIZE/MMM-Hotword2
-cd MMM-Hotword2
-npm install
-```
-
-### 3. Get PICOVOICE AccessKey
-1. Join [PICOVOICE](https://picovoice.ai/) and get an accessKey. (`Forever-Free` plan might have some limitations but would be enough for private use.)
-2. Open `.env` file (or copy from `env.example`) then put the accessKey into it.
-```env
-## .env
-PICOVOICE_ACCESS_KEY=#FILL_YOUR_ACCESS_KEY
-```
 For more details, [See the WIKI](https://github.com/MMRIZE/MMM-Hotword2/wiki)
+You can discuss Usage/Tips in the [Discussions](https://github.com/MMRIZE/MMM-Hotword2/discussions)
+You can report a bug or issue in the [Issues](https://github.com/MMRIZE/MMM-Hotword2/issues)
+
+## Author
+eouia0819@gmail.com
+[☕Buy a coffee.](https://ko-fi.com/eouia)
