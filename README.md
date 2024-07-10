@@ -16,7 +16,9 @@ MagicMirror module with Picovoice's Porcupine for Hotword detector. My previous 
 
 
 For more details, [See the WIKI](https://github.com/MMRIZE/MMM-Hotword2/wiki)
+
 You can discuss Usage/Tips in the [Discussions](https://github.com/MMRIZE/MMM-Hotword2/discussions)
+
 You can report a bug or issue in the [Issues](https://github.com/MMRIZE/MMM-Hotword2/issues)
 
 ## Author
